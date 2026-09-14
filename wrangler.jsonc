@@ -1,0 +1,12 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "meta-ads-mcp-server",
+  "main": "src/worker.ts",
+  "compatibility_date": "2026-06-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "observability": { "enabled": true },
+  "vars": {
+    "META_API_VERSION": "v21.0",
+    "META_DEFAULT_PORTFOLIO": "iqu"
+  }
+}

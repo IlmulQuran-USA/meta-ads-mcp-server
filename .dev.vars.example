@@ -1,0 +1,5 @@
+# Copy to .dev.vars for `npm run cf:dev` (never commit .dev.vars)
+META_TOKENS={"iqu":"EAAB...","deenova":"EAAB..."}
+MCP_PATH_SECRET=generate_with_openssl_rand_hex_24
+# MCP_AUTH_TOKEN=optional_bearer_secret
+# META_AD_ACCOUNT_IDS=111111111,222222222
