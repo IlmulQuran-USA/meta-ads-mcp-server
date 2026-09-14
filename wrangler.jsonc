@@ -4,9 +4,10 @@
   "main": "src/worker.ts",
   "compatibility_date": "2026-06-01",
   "compatibility_flags": ["nodejs_compat"],
+  "preview_urls": false,
   "observability": { "enabled": true },
   "vars": {
     "META_API_VERSION": "v21.0",
-    "META_DEFAULT_PORTFOLIO": "iqu"
-  }
+    "META_DEFAULT_PORTFOLIO": "iqu",
+  },
 }

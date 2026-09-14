@@ -26,35 +26,52 @@ import { analyze, InsightRow } from "./analysis.js";
 
 const CHARACTER_LIMIT = 40_000;
 
+/**
+ * Env values arrive differently per host: dotenv (.dev.vars) can leave wrapping
+ * quotes, Windows editors add CR/BOM, dashboards add trailing spaces.
+ * Normalise once, here, instead of chasing it per platform.
+ */
+function envStr(name: string): string | undefined {
+  const v = process.env[name];
+  if (typeof v !== "string") return undefined;
+  const clean = v
+    .replace(/^\uFEFF/, "")
+    .trim()
+    .replace(/^(['"])([\s\S]*)\1$/, "$2")
+    .trim();
+  return clean === "" ? undefined : clean;
+}
+
 const portfolios = new Map<string, MetaClient>();
 {
-  const raw = process.env.META_TOKENS;
+  const raw = envStr("META_TOKENS");
   if (raw) {
     let parsed: Record<string, string>;
     try {
       parsed = JSON.parse(raw);
     } catch {
-      console.error('META_TOKENS must be valid JSON like {"iqu":"EAAB...","other":"EAAB..."}');
-      process.exit(1);
+      // Never log the value itself — it holds live tokens. Length + shape only.
+      throw new Error(
+        `META_TOKENS must be valid JSON like {"iqu":"EAAB...","other":"EAAB..."} — ` +
+          `got ${raw.length} chars, first char ${JSON.stringify(raw[0])}, last char ${JSON.stringify(raw[raw.length - 1])}`
+      );
     }
     for (const [alias, token] of Object.entries(parsed)) {
       if (!/^[a-z0-9_-]{1,30}$/i.test(alias)) {
-        console.error(`Portfolio alias '${alias}' invalid (use letters/digits/_/-, max 30).`);
-        process.exit(1);
+        throw new Error(`Portfolio alias '${alias}' invalid (use letters/digits/_/-, max 30).`);
       }
       if (typeof token !== "string" || token.length < 20) {
-        console.error(`Token for portfolio '${alias}' looks invalid.`);
-        process.exit(1);
+        throw new Error(`Token for portfolio '${alias}' looks invalid.`);
       }
       portfolios.set(alias, new MetaClient(token));
     }
   }
-  if (process.env.META_ACCESS_TOKEN) {
-    portfolios.set("default", new MetaClient(process.env.META_ACCESS_TOKEN));
+  const single = envStr("META_ACCESS_TOKEN");
+  if (single) {
+    portfolios.set("default", new MetaClient(single));
   }
   if (portfolios.size === 0) {
-    console.error("Provide META_TOKENS (JSON) or META_ACCESS_TOKEN.");
-    process.exit(1);
+    throw new Error("Provide META_TOKENS (JSON) or META_ACCESS_TOKEN.");
   }
 }
 export const PORTFOLIO_ALIASES = [...portfolios.keys()];
